@@ -170,16 +170,18 @@ function loadFromGoogleSheets() {
 
       let rows = json.table.rows || [];
 
-      // если заголовки попали в данные — убираем первую строку
       const firstTitle = String(cellValue(rows[0] && rows[0].c && rows[0].c[1])).toLowerCase();
       if (["title", "наименование", "название"].includes(firstTitle)) rows = rows.slice(1);
 
       products = rows.map((row, idx) => {
+       if (activeCategory !== "Все" && !products.some(p => p.category === activeCategory)) {
+  activeCategory = "Все";
+}
         const c = row.c || [];
         return {
           id: cellValue(c[0]) || idx + 1,
           title: String(cellValue(c[1])),
-          category: String(cellValue(c[2])) || "Прочее",
+          category: normalizeCategory(cellValue(c[2])),
           price: toNumber(cellValue(c[3])) || 0,
           oldPrice: toNumber(cellValue(c[4])),
           sizes: String(cellValue(c[5])).split(",").map(s => s.trim()).filter(Boolean),
@@ -188,7 +190,24 @@ function loadFromGoogleSheets() {
         };
       }).filter(p => p.title);
 
-      renderCategories();
+     function renderCategories() {
+  const counts = {};
+  products.forEach(p => { counts[p.category] = (counts[p.category] || 0) + 1; });
+
+  // сначала пять основных разделов, затем всё, что не попало в список
+  const extras = Object.keys(counts).filter(c => !CATEGORIES.includes(c)).sort();
+  const order = ["Все", ...CATEGORIES.filter(c => counts[c]), ...extras];
+
+  categoriesEl.innerHTML = "";
+  order.forEach(cat => {
+    const n = cat === "Все" ? products.length : counts[cat];
+    const btn = document.createElement("button");
+    btn.textContent = `${cat} (${n})`;
+    if (cat === activeCategory) btn.classList.add("active");
+    btn.onclick = () => { activeCategory = cat; renderCategories(); renderProducts(); };
+    categoriesEl.appendChild(btn);
+  });
+}
       renderProducts();
     })
     .catch(err => {
