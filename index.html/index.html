@@ -94,10 +94,41 @@
 <footer>© 2026 Магазин «Стиль». Цены на сайте не являются публичной офертой.</footer>
 
 <script>
-const WHATSAPP_PHONE = "79991234567";
 const SHEET_ID = "1I0o0F0eZ2-LQr6zzMDjCUtgbDYhZm0EDmMDqIZVyGQg";
 const SHEET_NAME = "Лист1";   // точное имя листа внизу таблицы
+const CATEGORIES = [
+  "Зимняя одежда",
+  "Летняя одежда",
+  "Зимняя обувь",
+  "Летняя обувь",
+  "Аксессуары"
+];
 
+// Старые названия из таблицы приводятся к пяти разделам.
+// Ключи пишите строчными буквами.
+const CATEGORY_ALIASES = {
+  "костюмы зимние": "Зимняя одежда",
+  "костюмы демисезонные": "Зимняя одежда",   // поменяйте на "Летняя одежда", если нужно
+  "куртки": "Зимняя одежда",
+  "жилеты": "Зимняя одежда",
+  "брюки и полукомбинезоны": "Зимняя одежда",
+  "костюмы женские": "Зимняя одежда",
+  "детская одежда": "Зимняя одежда",
+  "зима": "Зимняя одежда",
+  "лето": "Летняя одежда",
+  "обувь зимняя": "Зимняя обувь",
+  "обувь летняя": "Летняя обувь",
+  "перчатки": "Аксессуары",
+  "аксессуары": "Аксессуары"
+};
+
+function normalizeCategory(raw) {
+  const key = String(raw || "").trim().toLowerCase();
+  if (!key) return "Прочее";
+  if (CATEGORY_ALIASES[key]) return CATEGORY_ALIASES[key];
+  const exact = CATEGORIES.find(c => c.toLowerCase() === key);
+  return exact || String(raw).trim();
+}
 const grid = document.getElementById("grid");
 const empty = document.getElementById("empty");
 const searchInput = document.getElementById("search");
